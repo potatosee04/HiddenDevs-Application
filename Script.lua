@@ -15,37 +15,32 @@ local explosion = require(serverScript.Modules.ToolFunctions.Explosion) -- explo
 local defaultProperties = {
     ["Radius"] = 10.5, -- explosion radius in studs
     ["CoinMultiplier"] = 1, -- coin multiplier (1 coin per brick by default)
-    ["DespawnTime"] = 30, -- time in seconds before rocket despawns
+    ["DespawnTime"] = 30, -- time in seconds before rocket despawns if it doesnt hit a part
     ["Cooldown"] = 2, -- cooldown time in seconds between shots
-    ["RocketSpeed"] = 70, -- speed of rocket in studs per second
+    ["RocketSpeed"] = 70, -- speed of rocket projectile
     ["HoldAnimation"] = 8595069583, -- animation ID for holding the launcher
     ["FireAnimation"] = 8613888431, -- animation ID for firing the launcher
-    ["Trail"] = trails.Default, -- default trail effect for rocket
+    ["Trail"] = trails.Default, -- default trail for rpg
     ["ExplosionSound"] = "Boom", -- name of explosion sound effect
     ["TravelingSound"] = "Swoosh", -- name of rocket traveling sound
     ["FireSound"] = "Fire", -- name of firing sound effect
-    ["RocketsPerShot"] = 1, -- number of rockets fired per shot
-    ["ExplosionParticle"] = "Default", -- explosion particle effect name
-    ["ExplosionParticleEmit"] = 100, -- number of particles to emit on explosion
-    ["RocketHiding"] = true, -- whether to hide original rocket model when firing
-    ["ShotsBetweenCooldown"] = 0.5 -- delay in seconds between multiple rockets in one shot
+    ["RocketsPerShot"] = 1, -- number of rockets fired per shot (2+ fires multiple rockets per click)
+    ["ExplosionParticle"] = "Default", -- explosion particle effect name 
+    ["ExplosionParticleEmit"] = 100, -- particle emit count for explosion (needed for some particles)
+    ["RocketHiding"] = true, -- whether to hide rocket on the gear when rocket is fired
+    ["ShotsBetweenCooldown"] = 0.5 -- delay in seconds between multiple rockets in one shot (if RocketsPerShot>1)
 }
 
---[[
-    Handles explosion effects when a part is hit by the rocket
-    @param part - The part that was hit by the explosion
-    @param spawnPos - The position where the explosion originated
-]]
+--handles explosion effects when a part is hit by the rocket
 local function explosionOnHit(part, spawnPos)
     local joint -- stores the first joint found on the part
     
-    -- Iterate through all joints connected to the part
-    for _, v in pairs(part:GetJoints()) do -- pairs used because GetJoints returns dictionary-like table
-        if joint == nil then -- check if we haven't stored a joint yet
+    for _, v in pairs(part:GetJoints()) do  -- iterate through all joints connected to the part
+        if joint == nil then -- check if nil
             joint = v -- store first joint for later use
         end
         
-        debris:AddItem(v, 0.1) -- schedule joint for removal after 0.1 seconds
+        debris:AddItem(v, 0.1) -- remove joint after 0.1 seconds
     end
     
     --[[

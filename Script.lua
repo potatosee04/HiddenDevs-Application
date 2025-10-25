@@ -1,27 +1,20 @@
---[[
-    RPG Module - Handles rocket launcher functionality for gear items
-    This module manages rocket creation, firing, explosions, and collision detection
-    Used for the default rocket launcher (slot 1 in hotbar)
-    Note: May require map to fully load before use
-]]
-
--- Initialize module table with metatable for OOP functionality
+-- this is the RPG gear module (used for gears with RPG class) 
 local rpg = {}
-rpg.__index = rpg -- allows instances to inherit methods from rpg table
+rpg.__index = rpg -- allow for inheriting methods 
 
--- Service references for game functionality
-local serverStorage = game:GetService("ServerStorage") -- stores server-side assets
-local replicatedStorage = game:GetService("ReplicatedStorage") -- stores replicated assets
-local trails = serverStorage:FindFirstChild("Trails") -- folder containing trail effects
-local debris = game:GetService("Debris") -- handles automatic instance cleanup
-local runService = game:GetService("RunService") -- provides game loop access
-local serverScript = game:GetService("ServerScriptService") -- contains server scripts
-local explosion = require(serverScript.Modules.ToolFunctions.Explosion) -- explosion handling module
+--services & misc
+local serverStorage = game:GetService("ServerStorage")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local trails = serverStorage:FindFirstChild("Trails") -- folder containing trail particle fx
+local debris = game:GetService("Debris")
+local runService = game:GetService("RunService")
+local serverScript = game:GetService("ServerScriptService")
+local explosion = require(serverScript.Modules.ToolFunctions.Explosion) -- explosion module
 
--- Default properties table - used when specific gear doesn't define these values
+--default properties table - used when specific gear settings module doesnt define a value
 local defaultProperties = {
     ["Radius"] = 10.5, -- explosion radius in studs
-    ["CoinMultiplier"] = 1, -- multiplier for coin rewards from kills
+    ["CoinMultiplier"] = 1, -- coin multiplier (1 coin per brick by default)
     ["DespawnTime"] = 30, -- time in seconds before rocket despawns
     ["Cooldown"] = 2, -- cooldown time in seconds between shots
     ["RocketSpeed"] = 70, -- speed of rocket in studs per second

@@ -43,13 +43,10 @@ local function explosionOnHit(part, spawnPos)
         debris:AddItem(v, 0.1) -- remove joint after 0.1 seconds
     end
     
-    --[[
-        Applies velocity to parts when they're exploded
-        Creates a force that flings the part away from explosion center
-    ]]
-    local function applyPartVelocity()
+    local function applyPartVelocity() -- applies fling force to parts
         local blastForce = Instance.new('BodyForce') -- creates force object to move part
-        -- Calculate force direction from explosion to part, multiply by mass and random factors
+        
+        -- calculate force direction from explosion to part, multiply by mass and random factors
         local force = ((spawnPos - part.Position)).unit * 650 * part:GetMass() * Vector3.new(
             math.random(1, 2) * math.random(1.111, 2.999), -- random X force multiplier
             math.random(1, 2) * math.random(1.111, 2.999), -- random Y force multiplier
@@ -57,30 +54,24 @@ local function explosionOnHit(part, spawnPos)
         )
         
         blastForce.Force = -force -- negate force to push away from explosion
-        blastForce.Parent = part -- attach force to the part
+        blastForce.Parent = part -- apply force to the part
         
         debris:AddItem(blastForce, 0.1) -- remove force after 0.1 seconds
     end
     
-    -- Check if joint exists before setting up connection
+    -- check if joint exists before setting up connection
     if joint ~= nil then
-        -- Apply velocity when joint is destroyed (part breaks off)
+        -- apply velocity when the joint is destroyed
         joint.Destroying:Connect(function()
-            applyPartVelocity() -- call velocity application function
+            applyPartVelocity() -- apply velocity
         end)
     else
-        -- If no joint exists, apply velocity immediately
+        -- if no joint exists, apply velocity immediately
         applyPartVelocity()
     end
 end
 
---[[
-    Creates a new RPG tool instance with all necessary properties and methods
-    @param settings - ModuleScript containing gear-specific settings
-    @param tool - The Tool object that represents this weapon
-    @param plr - The Player who owns this tool
-    @return self - New RPG instance with all properties initialized
-]]
+-- creates a new rpg tool instance with necessary properties and methods
 function rpg.new(settings, tool, plr)
     assert(settings, "Settings provided for tool are nil") -- ensure settings exist
     settings = require(settings) -- load the settings module

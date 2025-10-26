@@ -35,7 +35,7 @@ local defaultProperties = {
 local function explosionOnHit(part, spawnPos)
     local joint -- stores the first joint found on the part
     
-    for _, v in pairs(part:GetJoints()) do  -- iterate through all joints connected to the part
+    for _, v in ipairs(part:GetJoints()) do  -- iterate through all joints connected to the part
         if joint == nil then -- check if nil
             joint = v -- store first joint for later use
         end
@@ -241,64 +241,62 @@ function rpg:Fire(mousePos) -- fires towards mouse pos
         self.ToolObject:SetAttribute("Cooldown", true) -- set cooldown flag
         
         -- spawn new thread
-        task.spawn(function()
-            -- fire multiple rockets if RocketsPerShot > 1
-            for i = 1, self.RocketsPerShot do
-                local newRocket = self:CreateRocket() -- create rocket
-                
-                -- set rocket position (use Offset if defined, otherwise use Rocket position)
-                newRocket.Position = self.Offset or self.Rocket.Position
-                
-                -- hide original rocket model if RocketHiding is enabled
-                if self.RocketHiding then
-                    self.Rocket.Transparency = 1 -- make original rocket invisible
-                end
-                
-                local travelSound, explosionSound = self:SetupRocketSounds(newRocket) -- setup sound effects
-                
-                -- aim rocket towards mouse position
-                newRocket.CFrame = CFrame.new(self.Rocket.Position, mousePos) -- create cframe looking at target
-                newRocket.Position = newRocket.Position + newRocket.CFrame.LookVector -- move rocket forward slightly
-                
-                -- play firing sound if it exists
-                local fireSound = self.ToolObject:FindFirstChild(self.FireSound)
-                if fireSound ~= nil then -- check if fire sound exists
-                    fireSound.PlaybackSpeed = 1 + (math.random() - 0.5) * 0.15 -- randomize pitch slightly
-                    fireSound:Play() -- play the sound
-                end
-                
-                -- setup antigravity force so rocket travels straight
-                local bodyForce = Instance.new("BodyForce") -- create force object
-                bodyForce.Name = "Antigravity" -- name for identification
-                bodyForce.Force = Vector3.new(0, newRocket:GetMass() * workspace.Gravity, 0) -- counteract gravity
-                bodyForce.Parent = newRocket -- attach to rocket
-                
-                newRocket.Parent = workspace -- add rocket to workspace
-                newRocket:SetNetworkOwner(nil) -- set network ownership to server for physics
-                
-                -- apply velocity to rocket in forward direction
-                newRocket.AssemblyLinearVelocity = newRocket.CFrame.LookVector * self.RocketSpeed
-                
-                debris:AddItem(newRocket, self.DespawnTime) -- remove rocket after DespawnTime seconds
-                
-                -- setup collision detection for this rocket
-                self:SetupCollisionDetection(newRocket, travelSound, explosionSound)
-                
-                -- wait before firing next rocket (for multi shot rpgs)
-                task.wait(self.ShotsBetweenCooldown)
+        -- fire multiple rockets if RocketsPerShot > 1
+        for i = 1, self.RocketsPerShot do
+            local newRocket = self:CreateRocket() -- create rocket
+            
+            -- set rocket position (use Offset if defined, otherwise use Rocket position)
+            newRocket.Position = self.Offset or self.Rocket.Position
+            
+            -- hide original rocket model if RocketHiding is enabled
+            if self.RocketHiding then
+                self.Rocket.Transparency = 1 -- make original rocket invisible
             end
             
-            -- start cooldown timer in separate thread
-            task.spawn(function()
-                task.wait(self.Cooldown) -- wait for cooldown duration
-                
-                -- restore original rocket visibility if RocketHiding is enabled
-                if self.RocketHiding then
-                    self.Rocket.Transparency = 0 -- make rocket visible again
-                end
-                
-                self.ToolObject:SetAttribute("Cooldown", false) -- remove cooldown flag
-            end)
+            local travelSound, explosionSound = self:SetupRocketSounds(newRocket) -- setup sound effects
+            
+            -- aim rocket towards mouse position
+            newRocket.CFrame = CFrame.new(self.Rocket.Position, mousePos) -- create cframe looking at target
+            newRocket.Position = newRocket.Position + newRocket.CFrame.LookVector -- move rocket forward slightly
+            
+            -- play firing sound if it exists
+            local fireSound = self.ToolObject:FindFirstChild(self.FireSound)
+            if fireSound ~= nil then -- check if fire sound exists
+                fireSound.PlaybackSpeed = 1 + (math.random() - 0.5) * 0.15 -- randomize pitch slightly
+                fireSound:Play() -- play the sound
+            end
+            
+            -- setup antigravity force so rocket travels straight
+            local bodyForce = Instance.new("BodyForce") -- create force object
+            bodyForce.Name = "Antigravity" -- name for identification
+            bodyForce.Force = Vector3.new(0, newRocket:GetMass() * workspace.Gravity, 0) -- counteract gravity
+            bodyForce.Parent = newRocket -- attach to rocket
+            
+            newRocket.Parent = workspace -- add rocket to workspace
+            newRocket:SetNetworkOwner(nil) -- set network ownership to server for physics
+            
+            -- apply velocity to rocket in forward direction
+            newRocket.AssemblyLinearVelocity = newRocket.CFrame.LookVector * self.RocketSpeed
+            
+            debris:AddItem(newRocket, self.DespawnTime) -- remove rocket after DespawnTime seconds
+            
+            -- setup collision detection for this rocket
+            self:SetupCollisionDetection(newRocket, travelSound, explosionSound)
+            
+            -- wait before firing next rocket (for multi shot rpgs)
+            task.wait(self.ShotsBetweenCooldown)
+        end
+        
+        -- start cooldown timer in separate thread
+        task.spawn(function()
+            task.wait(self.Cooldown) -- wait for cooldown duration
+            
+            -- restore original rocket visibility if RocketHiding is enabled
+            if self.RocketHiding then
+                self.Rocket.Transparency = 0 -- make rocket visible again
+            end
+            
+            self.ToolObject:SetAttribute("Cooldown", false) -- remove cooldown flag
         end)
     end
 end
